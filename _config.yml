@@ -1,10 +1,10 @@
 # Site
-title:          hyunskki
-bio:            'Hyunskki'
-description:    "코딩..논문..코딩..논문..코....ㅋ...."
-picture:        'assets/img/Logo.png'
+title:          Hyunskki's Blog
+bio:            'Hyunskki's Blog'
+description:    "Kookmin univ. DMLab"
+picture:        'assets/img/pic1.png'
 locale:         en_US
-url:            https://taylantatli.github.io/Ramme
+url:            https://gustjr7879.github.io/hyunskki
 
 # Jekyll
 permalink:      /:title/
