@@ -1,8 +1,8 @@
 ---
 layout: page
-title: About the Theme
+title: About the Hyunskki
 tags: [about, Jekyll, theme, ramme]
-date: 2016-03-21
+date: 2022-11-25
 ---
 ![Logo]({{ site.url }}/{{ site.picture }}){: .selfie}
 
