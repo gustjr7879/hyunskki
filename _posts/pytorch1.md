@@ -1,0 +1,184 @@
+---
+layout: post
+title:  "Deep learning-1"
+excerpt: "Deep Learning-1"
+
+tags:
+  - [Blog, jekyll, Github, Python]
+
+toc: true
+toc_sticky: true
+ 
+date: 2023-05-01
+last_modified_at: 2023-05-01
+---
+{% include toc.html %}
+
+
+### 1. 파이토치 패키지의 기본 구성
+deep learning을 사용하면서 은근히 잘 모르고 넘어가는 경우가 많다고 생각되어서 다시 쭉 공부하면서 익히는 시간을 가질 것이다.
+#### 1. torch
+메인 네임스페이스이다. 텐서 등의 다양한 수학함수가 포함되어져 있으며 Numpy와 유사한 부분이 상당히 많다.
+#### 2. torch.autograd
+자동 미분을 위한 함수들이 포함되어져 있다. 자동 미분의 on/off를 제어하는 매니저(enable_grad/no_grad)나 자체 미분 가능 함수를 정의할 때 사용하는 기반 클래스인 Function 등이 포함되어져 있다.
+#### 3. torch.nn
+신경망을 구축하기 위한 다양한 데이터구조나 레이어등이 정의되어있다. RNN, LSTM과 같은 레이어나, ReLU와 같은 활성화함수, MSELoss 과 같은 로스 function등이 구축되어져있다.
+#### 4. torch.optim
+SGD를 중심으로 한 파라미터 최적화 알고리즘이 구현되어져있다.
+#### 5. torch.utils.data
+SGD의 반복연산을 실행할 때 사용하는 미니배치용 유틸리티 함수가 있다.
+#### 6. torch.onnx
+ONNX(open neural network exchange)의 포맷으로 모델을 export할 때 사용한다. 서로 다른 딥러닝 프레임워크 간에 모델을 공유할 때 사용하는 포맷이다.
+
+### 2. 텐서 조작하기(Tensor Manipulation)
+벡터, 행렬, 텐서의 개념에 대해서 이해하고 numpy나 파이토치로 부터 다루는 방법을 이해해보자
+차원이 없는 값 : 스칼라
+1차원 : 벡터
+2차원 : 행렬
+3차원 : 텐서
+데이터 사이언스 분야에서는 3차원 이상의 텐서를 그냥 다차원 행렬 또는 배열로 간주할 수 있다.
+
+#### 1. 넘파이로 텐서 만들기(벡터와 행렬 만들기)
+Numpy로 텐서를 만드는 방법은 간단한데 [숫자, 숫자, 숫자]와 같은 형식으로 만들고 이를 np.array()로 감싸주면 된다.
+
+{% highlight css %} 
+import numpy as np
+t = np.array([0.,1.,2.,3.,4.,5.,6])
+print(t)
+{% endhighlight %}
+를 하게되면 텐서가 출력된다.
+또한 위와같이 1차원 텐서인 벡터의 차원과 크기를 출력해보자
+
+{% highlight css %} 
+print('Rank of t',t.dim)
+print('Shape of t',t.shape)
+{% endhighlight %}
+
+#### 1-1. Numpy 기초 이해하기
+이제 Numpy에서 각 벡터의 원소에 접근하는 방법을 알아보자. Numpy의 인덱스는 다른 것과 동일하게 0에서 부터 시작된다.
+{% highlight css %} 
+print(t[0])
+{% endhighlight %}
+와 같이 그냥 리스트 인덱스 접근하는 것 처럼 할 수 있다.
+다른 것들도 동일함
+
+#### 1-2. 2D with Numpy 
+Numpy 로 2차원 행렬을 만들어보자
+
+{% highlight css %} 
+t = np.array([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.], [10., 11., 12.]])
+print(t)
+{% endhighlight %}
+t.dim 은 2가 될 것이고, t.shape 는 (4,3)이 될것이다. 
+
+#### 1-3 파이토치 텐서 선언하기(Pytorch Tensor Allocation)
+파이토치는 Numpy와 매우 유사하지만 더 낫다.
+
+{% highlight css %} 
+import torch
+t = torch.FloatTensor([0.,1.,2.,3.,4.,5.,6.])
+print(t)
+print(t.dim()) # 1
+print(t.shape) # 7
+print(t.size()) # 7
+{% endhighlight %}
+이 된다. 똑같이 인덱스로도 다 접근할 수 있다.
+
+{% highlight css %} 
+t = torch.FloatTensor([[1., 2., 3.],
+                       [4., 5., 6.],
+                       [7., 8., 9.],
+                       [10., 11., 12.]
+                      ])
+print(t)
+
+print(t[:, 1]) # 첫번째 차원을 전체 선택한 상황에서 두번째 차원의 첫번째 것만 가져온다.
+print(t[:, 1].size()) # ↑ 위의 경우의 크기
+{% endhighlight %}
+하게되면 tensor([2.,5.,8.,11])
+이 출력된다. 이는 첫번째 차원을 전체 선택한 상황에서 2번째 차원의 첫번째 것만 가져오라는 것이므로 이렇게 된다.
+
+#### 1-4 브로드캐스팅(Broadcasting)
+두 행렬 a,b가 있다고 할 때 보통 연산을 하려면 차원이 동일해야한다. 하지만 딥러닝을 하게되면 불가피하게 크기가 다른 행렬 또는 텐서에 대해서 사칙연산을 수행할 필요가 있는 경우가 생긴다. 이를 위해서 파이토치에서는 자동으로 크기를 맞춰서 연산을 수행하게 만드는 브로드캐스팅이라는 기능을 제공한다.
+{% highlight css %} 
+m1 = torch.FloatTensor([[1, 2]])
+m2 = torch.FloatTensor([[3], [4]])
+print(m1 + m2)
+m1 = torch.FloatTensor([[1, 2]])
+m2 = torch.FloatTensor([3]) # [3] -> [3, 3]
+print(m1 + m2)
+{% endhighlight %}
+위의 두 예시와 같이 크기가 다르지만 자동으로 그 크기에 맞춰서 브로드 캐스팅이 적용되는 것을 확인할 수 있다.
+편리한 기능이지만 자동으로 실행되는 기능으로 사용자입장에서 주의를 해야한다. 
+
+#### 1-5 자주 사용되는 기능들
+행렬 곱셈과 곱셈의 차이(matrix multiplication Vs. multiplication)
+행렬로 곱셈을 하는 방법은 크게 두가지가 있다. 행렬 곱셈(matmul)과 원소별 곱셈(mul)이다.
+{% highlight css %} 
+m1 = torch.FloatTensor([[1, 2], [3, 4]])
+m2 = torch.FloatTensor([[1], [2]])
+print('Shape of Matrix 1: ', m1.shape) # 2 x 2
+print('Shape of Matrix 2: ', m2.shape) # 2 x 1
+print(m1.matmul(m2)) # 2 x 1
+{% endhighlight %}
+이와 같이 사용할 수 있다. 그냥 곱셈은 차원이 변하는 것이 적용되지않는다.
+이쯤은 거의 알고 있는 내용이니 스킵하고 바로 딥러닝쪽으로 들어가보자
+
+### 3. 선형회귀(Linear Regression)
+어떤 학생이 1시간 공부했을 때 2점, 2시간 공부했을 때 4점, 3시간 공부했을 때 6점을 맞았다고 할 때 4시간을 공부하게 된다면 몇점을 맞을 수 있었을까?
+이 질문을 맞추기위해서는 1,2,3시간 공부했을 때 각각 2,4,6 점이 나왔다는 정보를 이용해야한다.
+
+이렇게 예측을 위해서 사용하는 데이터를 training set이라고 한다. 학습이 끝난 후 얼마나 잘 작동되는지 판변하는 데이터셋을 test dataset이라고 한다.
+
+#### 가설 수립(hypothesis)
+머신러닝에서 식을 세울 때 가설이라고 한다. 임의로 추측해서 세워보는 식일 수 있고 경험적으로 알고 있는 식일 수도 있다.
+그리고 맞는 가설이 아니라고 판단되면 계속 수정하는 식일 수도 있다.
+선형회귀란 학습데이터와 가장 잘 맞는 하나의 직선을 찾는 일이다.
+
+y = Wx + b 이런 식으로 사용하게 되는데,x와 곱해지는 W를 가중치, b를 편향(bias)라고 부른다.
+
+#### 비용함수(cost function)
+비용함수 = 손실함수 = 오차함수 = 목적함수
+다 같은 의미이고 비용함수 또는 손실함수라고 많이 사용한다.
+직선이 하나 만들어지고 거기에서 실제 값과 직선위의 값들의 오차를 구해서 loss로 사용한다.
+하지만 오차를 구할때 음수가 나오는 경우도 있기때문에 제곱해준 후 다 더하고 이를 데이터갯수 n개로 나눈다면
+이를 가장 간단하게 사용할 수 있는 평균 제곱 오차(Mean Squared Error, MSE)라고 한다.
+이 오차의 값을 최솟값으로 만드는 W와 b를 찾아내는 것이 머신러닝의 주요 목적이 된다.
+
+#### 옵티마이저 - 경사하강법 (Gradient Descent)
+앞에서 말한 오차가 최소가 되는 W 와 b를 찾는 방법에 대해서 배워보자
+이때 사용하는 것이 optimizer 알고리즘이 된다. 최적화 알고리즘이라고 한다.
+이 optimizer 알고리즘을 통하여 적절한 W와 b를 찾아내는 과정을 머신러닝에서 training(학습)이라고 한다.
+
+W(기울기)가 너무 커져도 오차가 증가하고, 너무 작아도 오차가 증가하게 된다. 기계는 임의의 W를 초기값으로 설정 후 점차 오차가 작은 쪽으로 W를 수정해나간다. 이를 가능하게 하는 것이 경사하강법이다 (Gradient Descent)
+이때 접선의 기울기가 0인경우가 가장 좋은 결과를 보이는 것이 되는데 즉 미분값을 가지고 판단할 수 있다는 것이다. 미분값이 커질수록 오차가 늘어난다라고 볼 수 있다.
+경사하강법의 아이디어는 loss function을 미분하여 현재의 W에서 접선의 기울기를 구하고 접선의 기울기가 낮은 방향으로 W의 값을 변경하는 작업을 반복하는 것에 있다.
+
+여기서 학습률(learning rate)라는 개념이 등장한다. 이는 W의 값을 변경할 때 얼마나 크게 변경할 지를 결정한다. W를 그래프의 한 점으로 보고 접선의 기울기가 0일때까지 경사를 내려간다는 관점에서 얼마나 큰 폭으로 수정하는지를 결정한다.
+학습률이 지나치게 크면 발산해버리는 경우가 나타날 수 있기 때문에 learning rate를 찾는 것도 상당히 중요하다.
+
+### 파이토치로 선형회귀 구현하기
+
+{% highlight css %} 
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+
+torch.manual_seed(1)
+x_train = torch.FloatTensor([[1], [2], [3]])
+y_train = torch.FloatTensor([[2], [4], [6]])
+
+W = torch.zeros(1,requires_grad = True)
+print(W)
+b = torch. zeros(1, requires_grad = True)
+print(b)
+
+hypo = W*x_train + b
+
+cost = torch.mean((hypo - y_train)**2)
+optimizer = optim.SGD([W,b],lr = 0.01)
+optimizer.zero_grad() # gradient 초기화
+cost.backward() # loss function 을 미분하여 gradient 계산
+optimizer.step() # W와 b를 업데이트
+{% endhighlight %}
