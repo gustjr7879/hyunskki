@@ -52,6 +52,22 @@ python3 train.py > output1.txt; python3 train.py > output2.txt; cmp output1.txt 
 {% endhighlight %}
 로 비교를 하니 다른점은 걸린 총 시간만 다르게 나왔다.
 
+
+### 4-1. 해결-2
+torch.spmm에서 시드가 고정안된다는 이슈가 있었다.
+cuda version 10.2에서는 정상적으로 작동하고 11.6이상 버전에서는 고정이 안된다 (dlpc 환경세팅으로 확인함)
+https://github.com/pytorch/pytorch/pull/75784 에서 나온 확인할 수 있는 이슈이다.
+cuda의 cusparse spmm에서 연산괴정에서 고정이 되지않는다.
+해당 문제를 torch에서 확인은 하였고 pull-request까지 나왔지만 merge후 릴리즈버전으로 고쳐지지 않음.
+
+torch_sparse라이브러리의 spmm으로 대체하는 방법으로 해결하였다. 또한 환경변수 세팅이 필요하였음.
+{% highlight css %}
+os.environ["CUBLAS_WORKSPACE_CONFIG"]=":4096:8"
+또한 이전에 내가 하던 실험에서 dgl라이브러리도 gpu로 돌리면 시드가 고정되지 않는 문제가 있었다. 따라서 dgl을 torch_geometric으로 대체해서 사용하는 것으로 해결하였다.
+
+
+{% endhighlight %}
+
 ### 5. 문제 해결 이후
 문제를 해결했으니 부동소수점, 고정소수점에 대해서 다시 한번 보고 넘어가자는
 의미로 정리를 해보려고 한다.
